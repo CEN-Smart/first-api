@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User
+
+model User {
+  id        String    @id @default(cuid())
+  username  String    @unique
+  password  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+// Product
+
+model Product {
+  id        String   @id @default(cuid())
+  name      String   @db.VarChar(255) @unique
+  userId    String
+  belongsTo User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  updates   Update[]
+}
+
+
+// Update
+
+enum UpdateStatus {
+  IN_PROGRESS
+  LIVE
+  DEPRECATED
+  ARCHIVED
+}
+
+model Update {
+  id          String        @id @default(cuid())
+  productId   String
+  status      UpdateStatus  @default(IN_PROGRESS)
+  title       String
+  body        String
+  version     String?
+  assets      String?
+  product     Product       @relation(fields: [productId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  updatePoints UpdatePoint[]
+}
+
+
+// UpdatePoint
+
+model UpdatePoint {
+  id          String   @id @default(cuid())
+  updateId    String
+  update      Update   @relation(fields: [updateId], references: [id])
+  name        String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
